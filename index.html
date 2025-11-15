@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RTD & NTC Dashboard - Kalibrasi</title>
+    <style>
+      :root {
+        --bg: #0f1724;
+        --card: #0b1220;
+        --muted: #9aa6b2;
+        --accent: #1ea7fd;
+        --ok: #22c55e;
+      }
+      body {
+        font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+        margin: 0;
+        background: linear-gradient(180deg, #071126 0%, #07142a 100%);
+        color: #e6eef6;
+      }
+      .wrap {
+        max-width: 940px;
+        margin: 28px auto;
+        padding: 18px;
+      }
+      .card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.01)
+        );
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 6px 20px rgba(2, 6, 23, 0.6);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 20px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .col {
+        flex: 1;
+      }
+      label {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: transparent;
+        color: inherit;
+      }
+      button {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 0;
+        background: var(--accent);
+        color: #051226;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+      }
+      .flex {
+        display: flex;
+        gap: 8px;
+      }
+      .big {
+        font-size: 28px;
+        font-weight: 600;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .stat {
+        padding: 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .tiny {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 13px;
+      }
+      footer {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 14px;
+        text-align: center;
+      }
+      @media (max-width: 720px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .row {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>RTD & NTC Dashboard — Kalibrasi</h1>
+        <div class="row">
+          <div class="col">
+            <label>IP ESP32 (misal: 192.168.1.20)</label>
+            <input type="text" id="espIp" placeholder="Masukkan IP ESP32..." />
+          </div>
+          <div style="width: 120px; display: flex; align-items: end; gap: 8px">
+            <button id="saveIpBtn">Simpan IP</button>
+            <button id="clearIpBtn" class="secondary">Reset</button>
+          </div>
+        </div>
+        <div class="status" id="connStatus">IP belum disetel</div>
+
+        <div class="grid" style="margin-top: 16px">
+          <div class="stat">
+            <div class="tiny">RTD (raw)</div>
+            <div class="big" id="rtdRaw">--</div>
+            <div class="muted">°C</div>
+          </div>
+          <div class="stat">
+            <div class="tiny">NTC (raw)</div>
+            <div class="big" id="ntcRaw">--</div>
+            <div class="muted">°C</div>
+          </div>
+          <div class="stat">
+            <div class="tiny">Server</div>
+            <div id="serverIp" class="muted">-</div>
+            <div class="muted">update tiap 2s</div>
+          </div>
+
+          <div class="stat">
+            <div class="tiny">RTD Kalibrasi</div>
+            <div class="big" id="rtdCal">--</div>
+            <div class="muted">offset: <span id="rtdOff">--</span></div>
+          </div>
+          <div class="stat">
+            <div class="tiny">NTC Kalibrasi</div>
+            <div class="big" id="ntcCal">--</div>
+            <div class="muted">offset: <span id="ntcOff">--</span></div>
+          </div>
+          <div class="stat">
+            <div class="tiny">Terakhir</div>
+            <div id="lastSeen">-</div>
+            <div class="muted">status fetch</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px" class="card">
+          <div style="display: flex; gap: 10px; align-items: end">
+            <div style="flex: 1">
+              <label>Masukkan suhu referensi RTD (°C)</label>
+              <input
+                id="refRTD"
+                type="number"
+                step="0.1"
+                placeholder="contoh: 27.3"
+              />
+            </div>
+            <div style="width: 140px">
+              <button id="calRTDBtn">Kalibrasi RTD</button>
+            </div>
+          </div>
+
+          <div style="height: 12px"></div>
+
+          <div style="display: flex; gap: 10px; align-items: end">
+            <div style="flex: 1">
+              <label>Masukkan suhu referensi NTC (°C)</label>
+              <input
+                id="refNTC"
+                type="number"
+                step="0.1"
+                placeholder="contoh: 27.3"
+              />
+            </div>
+            <div style="width: 140px">
+              <button id="calNTCBtn">Kalibrasi NTC</button>
+            </div>
+          </div>
+
+          <div class="status" id="actionStatus"></div>
+        </div>
+
+        <footer>
+          Web client ini berkomunikasi langsung ke ESP32 API (GET /api/data,
+          POST /api/calibrate_rtd, POST /api/calibrate_ntc). Pastikan CORS aktif
+          di ESP32 dan perangkat pada jaringan sama.
+        </footer>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const espIpInput = document.getElementById("espIp");
+        const saveIpBtn = document.getElementById("saveIpBtn");
+        const clearIpBtn = document.getElementById("clearIpBtn");
+        const connStatus = document.getElementById("connStatus");
+        const serverIp = document.getElementById("serverIp");
+        const lastSeen = document.getElementById("lastSeen");
+        const rtdRawEl = document.getElementById("rtdRaw");
+        const ntcRawEl = document.getElementById("ntcRaw");
+        const rtdCalEl = document.getElementById("rtdCal");
+        const ntcCalEl = document.getElementById("ntcCal");
+        const rtdOffEl = document.getElementById("rtdOff");
+        const ntcOffEl = document.getElementById("ntcOff");
+        const actionStatus = document.getElementById("actionStatus");
+
+        const calRTDBtn = document.getElementById("calRTDBtn");
+        const calNTCBtn = document.getElementById("calNTCBtn");
+        const refRTD = document.getElementById("refRTD");
+        const refNTC = document.getElementById("refNTC");
+
+        let ESP = localStorage.getItem("esp_ip") || "";
+        espIpInput.value = ESP;
+        serverIp.innerText = ESP || "-";
+        connStatus.innerText = ESP ? "IP sudah disetel" : "IP belum disetel";
+
+        function setStatus(txt, ok) {
+          connStatus.innerText = txt;
+          connStatus.style.color = ok ? "#9be7b7" : "#ff9b9b";
+        }
+
+        saveIpBtn.addEventListener("click", () => {
+          const v = espIpInput.value.trim();
+          if (!v) {
+            alert("Masukkan IP ESP32");
+            return;
+          }
+          localStorage.setItem("esp_ip", v);
+          ESP = v;
+          serverIp.innerText = ESP;
+          setStatus("IP disimpan: " + ESP, true);
+        });
+
+        clearIpBtn.addEventListener("click", () => {
+          localStorage.removeItem("esp_ip");
+          ESP = "";
+          espIpInput.value = "";
+          serverIp.innerText = "-";
+          setStatus("IP direset", false);
+        });
+
+        async function fetchData() {
+          if (!ESP) return;
+          const url = `http://${ESP}/api/data`;
+          try {
+            const res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const j = await res.json();
+            rtdRawEl.innerText = Number(j.rtd_raw).toFixed(2);
+            ntcRawEl.innerText = Number(j.ntc_raw).toFixed(2);
+            rtdCalEl.innerText = Number(j.rtd_cal).toFixed(2);
+            ntcCalEl.innerText = Number(j.ntc_cal).toFixed(2);
+            rtdOffEl.innerText = Number(j.offset_rtd).toFixed(2);
+            ntcOffEl.innerText = Number(j.offset_ntc).toFixed(2);
+            lastSeen.innerText = new Date().toLocaleTimeString();
+            setStatus("Terhubung ke " + ESP, true);
+          } catch (err) {
+            setStatus("Gagal fetch: " + err.message, false);
+          }
+        }
+
+        async function postCalibrate(path, value) {
+          if (!ESP) {
+            alert("IP ESP belum disetel");
+            return;
+          }
+          actionStatus.innerText = "Mengirim kalibrasi...";
+          try {
+            const res = await fetch(`http://${ESP}/${path}`, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain" },
+              body: String(value),
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const j = await res.json();
+            actionStatus.innerText = "Kalibrasi sukses: " + JSON.stringify(j);
+            // refresh data cepat
+            await fetchData();
+            setTimeout(() => (actionStatus.innerText = ""), 3500);
+          } catch (err) {
+            actionStatus.innerText = "Gagal kalibrasi: " + err.message;
+          }
+        }
+
+        calRTDBtn.addEventListener("click", () => {
+          const v = refRTD.value.trim();
+          if (!v) {
+            alert("Masukkan nilai referensi RTD");
+            return;
+          }
+          postCalibrate("api/calibrate_rtd", Number(v));
+        });
+
+        calNTCBtn.addEventListener("click", () => {
+          const v = refNTC.value.trim();
+          if (!v) {
+            alert("Masukkan nilai referensi NTC");
+            return;
+          }
+          postCalibrate("api/calibrate_ntc", Number(v));
+        });
+
+        // polling tiap 2 detik
+        setInterval(fetchData, 2000);
+        // first
+        fetchData();
+      })();
+    </script>
+  </body>
+</html>
