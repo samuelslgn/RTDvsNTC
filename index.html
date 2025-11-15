@@ -265,7 +265,7 @@
 
         async function fetchData() {
           if (!ESP) return;
-          const url = `http://${ESP}/api/data`;
+          const url = `https://esp32-proxy-yourname.vercel.app/api/proxy?esp=${ESP}&path=api/data`;
           try {
             const res = await fetch(url, { cache: "no-store" });
             if (!res.ok) throw new Error("HTTP " + res.status);
@@ -290,11 +290,14 @@
           }
           actionStatus.innerText = "Mengirim kalibrasi...";
           try {
-            const res = await fetch(`http://${ESP}/${path}`, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain" },
-              body: String(value),
-            });
+            const res = await fetch(
+              `https://esp32-proxy-yourname.vercel.app/api/proxy?esp=${ESP}&path=${path}`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: String(value),
+              }
+            );
             if (!res.ok) throw new Error("HTTP " + res.status);
             const j = await res.json();
             actionStatus.innerText = "Kalibrasi sukses: " + JSON.stringify(j);
